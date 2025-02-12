@@ -1,48 +1,58 @@
-# QuickBuyBSCS3B
+# create-svelte
 
-## 1st Sprint
+Everything you need to build a Svelte library, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/main/packages/create-svelte).
 
-### User Stories
-- As a customer, I want to login securely.
-- As a seller, I want to login securely.
-- As an admin, I want to login securely.
-- As a customer, I should have the ability to logout of my account.
-- As a seller, I should have the ability to logout of my account.
-- As an admin, I should have the ability to logout of my account.
-- As a customer, I want to register an account to browse the items I want.
-- As a seller, I want to register an account to be able to sell.
+Read more about creating a library [in the docs](https://svelte.dev/docs/kit/packaging).
 
-### Team Members
+## Creating a project
 
-#### Project Manager
-- De Belen, Alloizeus John B.
-- Gano, Mary Rose B.
-- Hizola, John Carlo A.
+If you're seeing this, you've probably already done this step. Congrats!
 
-#### UI/UX Designer
-- Castañeda, Jeffrey B.
-- Parantar, Lee Parker D.
-- Salem, Jenishe D.
-- Tongson, Carmi Wilna M.
+```bash
+# create a new project in the current directory
+npx sv create
 
-#### Developers
-- Agojo, Knight Lance C.
-- Aguilar, Zaldy F.
-- Agustin, Kiel Rendrix A.
-- Benedicto, Bernard Adrianne C.
-- Ching, Nicolas Milton C.
-- Culanag, Iverson P.
-- Del Carmen, Angelo B.
-- Mayo, Andrei B.
-- Nario, Nandy Nojadera
-- Casey D. Rada
-- Shawn Tyrone D. Viñas
-- Jake S.
+# create a new project in my-app
+npx sv create my-app
+```
 
-#### Quality Assurance
-- Dayandante, Michael D.
-- Pajaro, Roescen Abie S.
-- Pingal, Rhodelito P.
-- Rogero, Marc Ivan S.
-- Rosario, Xian Erwin D.
-- Viñas, Jim Dale V.
+## Developing
+
+Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+
+```bash
+npm run dev
+
+# or start the server and open the app in a new browser tab
+npm run dev -- --open
+```
+
+Everything inside `src/lib` is part of your library, everything inside `src/routes` can be used as a showcase or preview app.
+
+## Building
+
+To build your library:
+
+```bash
+npm run package
+```
+
+To create a production version of your showcase app:
+
+```bash
+npm run build
+```
+
+You can preview the production build with `npm run preview`.
+
+> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+
+## Publishing
+
+Go into the `package.json` and give your package the desired name through the `"name"` option. Also consider adding a `"license"` field and point it to a `LICENSE` file which you can create from a template (one popular option is the [MIT license](https://opensource.org/license/mit/)).
+
+To publish your library to [npm](https://www.npmjs.com):
+
+```bash
+npm publish
+```
