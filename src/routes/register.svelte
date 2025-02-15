@@ -4,13 +4,41 @@
   let email = "";
   let password = "";
   let confirmPassword = "";
+  let errorMessage = "";
 
-  function submitForm() {
+  async function submitForm() {
     if (password !== confirmPassword) {
-      alert("Passwords do not match");
+      errorMessage = "Passwords do not match";
       return;
     }
-    console.log({ role, username, email, password });
+
+    const userData = { username, email, password, role };
+
+    try {
+      const response = await fetch("http://localhost:3000/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(userData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert("Registration successful!");
+
+        // CLEAR THE INPUT FIELDS after successfil registration
+        username = "";
+        email = "";
+        password = "";
+        confirmPassword = "";
+        errorMessage = ""; // RESETS error messages after successful registration
+      } else {
+        errorMessage = data.message || "Registration failed!";
+      }
+    } catch (error) {
+      errorMessage = "Something went wrong!";
+      console.error(error);
+    }
   }
 </script>
 
@@ -22,13 +50,15 @@
     <div class="flex justify-center mb-4">
       <button 
         class="px-4 py-2 w-1/2 border rounded-l-lg text-xs" 
-        class:active={role === 'customer'} 
+        class:bg-green-500={role === 'customer'} 
+        class:text-white={role === 'customer'}
         on:click={() => role = 'customer'}>
         Customer
       </button>
       <button 
         class="px-2 py-2 w-1/2 border rounded-r-lg text-xs" 
-        class:active={role === 'seller'}
+        class:bg-green-500={role === 'seller'}
+        class:text-white={role === 'seller'}
         on:click={() => role = 'seller'}>
         Seller
       </button>
@@ -38,16 +68,13 @@
     <input type="email" placeholder="Email" bind:value={email} class="w-full mb-2 p-2 border rounded" />
     <input type="password" placeholder="Password" bind:value={password} class="w-full mb-2 p-2 border rounded" />
     <input type="password" placeholder="Confirm Password" bind:value={confirmPassword} class="w-full mb-4 p-2 border rounded" />
+
+    {#if errorMessage}
+      <p class="text-red-500 text-sm text-center mb-2">{errorMessage}</p>
+    {/if}
     
-    <button on:click={submitForm} class="w-full bg-gray-400 text-white py-2 rounded cursor-pointer">Continue →</button>
+    <button on:click={submitForm} class="w-full bg-green-500 text-white py-2 rounded cursor-pointer">Continue →</button>
 
     <p class="text-center mt-4 text-gray-600">Already have an account? Login</p>
   </div>
 </main>
-
-<style>
-  button.active {
-    background-color: #EFEFEF;
-    color: #FFFFFF;
-  }
-</style>
