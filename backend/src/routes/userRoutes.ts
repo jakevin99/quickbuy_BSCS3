@@ -1,11 +1,12 @@
 import express from "express";
-import { registerUser, logoutUser } from "../controllers/userController";
+import { registerUser, loginUser, logoutUser } from "../controllers/userController";
 
 const router = express.Router();
 
 // POST /api/register will use the registerUser contrller
 
 router.post("/register", registerUser);
+router.post("/login", loginUser);
 router.post("/logout", logoutUser);
 
 export default router;

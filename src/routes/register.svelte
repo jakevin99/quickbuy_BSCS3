@@ -86,6 +86,14 @@
     
     <button on:click={submitForm} class="w-full bg-green-500 text-white py-2 rounded cursor-pointer">Continue →</button>
 
-    <p class="text-center mt-4 text-gray-600">Already have an account? Login</p>
+    <p class="text-center mt-4 text-gray-600">
+      Already have an account? 
+      <button
+        on:click={() => goto('/login')}
+        class="text-green-500 hover:text-green-600"
+      >
+        Login
+      </button>
+    </p>
   </div>
 </main>
