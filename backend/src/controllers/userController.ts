@@ -66,3 +66,21 @@ export const registerUser: RequestHandler = async (
     res.status(500).json({ message: "Server error" });
   }
 };
+
+// Logout Controller
+export const logoutUser: RequestHandler = (req: Request, res: Response) => {
+  try {
+    // Clear the session
+    req.session?.destroy((err) => {
+      if (err) {
+        return res.status(500).json({ message: "Could not log out, please try again" });
+      }
+      // Clear the session cookie
+      res.clearCookie("connect.sid");
+      return res.json({ message: "Logged out successfully" });
+    });
+  } catch (error) {
+    console.error("Logout error:", error);
+    res.status(500).json({ message: "Server error during logout" });
+  }
+};

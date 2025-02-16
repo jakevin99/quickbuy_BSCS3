@@ -1,4 +1,6 @@
 <script>
+  import { goto } from '$app/navigation';
+  
   let role = "customer";
   let username = "";
   let email = "";
@@ -17,27 +19,36 @@
     try {
       const response = await fetch("http://localhost:3000/api/register", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
         body: JSON.stringify(userData),
+        credentials: 'include'
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        alert("Registration successful!");
-
-        // CLEAR THE INPUT FIELDS after successfil registration
-        username = "";
-        email = "";
-        password = "";
-        confirmPassword = "";
-        errorMessage = ""; // RESETS error messages after successful registration
-      } else {
+      if (!response.ok) {
+        const data = await response.json();
         errorMessage = data.message || "Registration failed!";
+        return;
       }
+
+      const data = await response.json();
+      alert("Registration successful!");
+      
+      // Clear the input fields
+      username = "";
+      email = "";
+      password = "";
+      confirmPassword = "";
+      errorMessage = "";
+      
+      // Redirect to logout page
+      goto('/logout');
+      
     } catch (error) {
-      errorMessage = "Something went wrong!";
-      console.error(error);
+      console.error("Registration error:", error);
+      errorMessage = "Connection error - please try again";
     }
   }
 </script>
