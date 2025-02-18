@@ -5,7 +5,7 @@
   
   async function handleLogout() {
     try {
-      const response = await fetch('http://localhost:5173/api/logout_api', {
+      const response = await fetch('http://localhost:3000/api/logout', {
         method: 'POST',
         credentials: 'include',
       });

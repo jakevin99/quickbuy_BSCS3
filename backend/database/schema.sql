@@ -2,13 +2,13 @@
 
 USE quickbuy_db;
 
--- Create the users table
+-- Create the users table with admin role
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL, 
     email VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
-    role ENUM('customer', 'seller') NOT NULL,
+    role ENUM('customer', 'seller', 'admin') NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
