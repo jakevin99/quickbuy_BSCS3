@@ -1,7 +1,7 @@
 // The purpose of This User Controller, is to Validate the inputs that the user register.
 import { RowDataPacket } from "mysql2/promise";
-import { Request, Response } from "express";
-import { Session } from 'express-session';
+import { Request, Response, RequestHandler } from "express";
+import { Session } from "express-session";
 import bcrypt from "bcryptjs";
 import pool from "../models/db";
 
@@ -12,6 +12,7 @@ interface User {
   email: string;
   password: string;
   role: string;
+  shop_name: string;
 }
 
 // Extend Request type to include session
@@ -24,11 +25,8 @@ interface RequestWithSession extends Request {
 }
 
 // Registration Controller
-export const registerUser = async (
-  req: Request,
-  res: Response
-) => {
-  const { username, email, password, role } = req.body;
+export const registerUser: RequestHandler = async (req, res): Promise<void> => {
+  const { username, email, password, role, shop_name } = req.body;
 
   // Check if all fields are provided
   if (!username || !email || !password || !role) {
@@ -37,8 +35,13 @@ export const registerUser = async (
   }
 
   // Validate role (only allow customer or seller)
-  if (role !== 'customer' && role !== 'seller') {
+  if (role !== "customer" && role !== "seller") {
     res.status(400).json({ message: "Invalid role selected" });
+    return;
+  }
+
+  if (role === "seller" && !shop_name) {
+    res.status(400).json({ message: "Shop name is required for sellers" });
     return;
   }
 
@@ -51,28 +54,57 @@ export const registerUser = async (
 
   // Check for password strength
   if (password.length < 8) {
-    res.status(400).json({ message: "Password must be at least 8 characters long" });
+    res
+      .status(400)
+      .json({ message: "Password must be at least 8 characters long" });
     return;
   }
 
   try {
-    // Check if email or username exists
+    // Ensure that sellers provide a shop_name
+    if (role === "seller" && (!shop_name || shop_name.trim() === "")) {
+      res.status(400).json({ message: "Shop name is required for sellers" });
+    }
+
+    // Check if email, username, or shop_name (for sellers) already exists
     const [rows] = await pool.query<RowDataPacket[] & User[]>(
-      "SELECT * FROM users WHERE email = ? OR username = ?",
-      [email, username]
+      role === "seller"
+        ? "SELECT email, username, shop_name FROM users WHERE email = ? OR username = ? OR shop_name = ?"
+        : "SELECT email, username FROM users WHERE email = ? OR username = ?",
+      role === "seller" ? [email, username, shop_name] : [email, username]
     );
 
     if (rows.length > 0) {
-      res.status(400).json({ message: "Email or username already exists" });
-      return;
+      if (rows.some((user) => user.email === email)) {
+        res.status(400).json({ message: "Email already exists" });
+        return;
+      }
+      if (rows.some((user) => user.username === username)) {
+        res.status(400).json({ message: "Username already exists" });
+        return;
+      }
+      if (
+        role === "seller" &&
+        rows.some((user) => user.shop_name === shop_name)
+      ) {
+        res.status(400).json({ message: "Shop name already exists" });
+        return;
+      }
     }
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Insert user
-    const query = "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)";
-    await pool.query(query, [username, email, hashedPassword, role]);
+    const query =
+      "INSERT INTO users (username, email, password, role, shop_name) VALUES (?, ?, ?, ?, ?)";
+    await pool.query(query, [
+      username,
+      email,
+      hashedPassword,
+      role,
+      role === "seller" ? shop_name : null,
+    ]);
 
     res.status(201).json({ message: "User registered successfully" });
   } catch (err) {
@@ -82,10 +114,7 @@ export const registerUser = async (
 };
 
 // Login Controller
-export const loginUser = async (
-  req: RequestWithSession,
-  res: Response
-) => {
+export const loginUser = async (req: RequestWithSession, res: Response) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -115,22 +144,22 @@ export const loginUser = async (
     // Set session data
     req.session.userId = user.id;
     req.session.role = user.role;
-    
+
     // Save session
     req.session.save((err) => {
       if (err) {
         res.status(500).json({ message: "Error creating session" });
         return;
       }
-      
+
       res.json({
         message: "Logged in successfully",
         user: {
           id: user.id,
           username: user.username,
           email: user.email,
-          role: user.role
-        }
+          role: user.role,
+        },
       });
     });
   } catch (error) {
@@ -140,14 +169,13 @@ export const loginUser = async (
 };
 
 // Logout Controller
-export const logoutUser = (
-  req: RequestWithSession,
-  res: Response
-) => {
+export const logoutUser = (req: RequestWithSession, res: Response) => {
   try {
     req.session.destroy((error: Error | null) => {
       if (error) {
-        res.status(500).json({ message: "Could not log out, please try again" });
+        res
+          .status(500)
+          .json({ message: "Could not log out, please try again" });
         return;
       }
       res.clearCookie("connect.sid");

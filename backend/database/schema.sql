@@ -1,3 +1,4 @@
+
 -- Select the database
 
 USE quickbuy_db;
@@ -9,6 +10,7 @@ CREATE TABLE users (
     email VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
     role ENUM('customer', 'seller', 'admin') NOT NULL,
+    shop_name VARCHAR(100) DEFAULT NULL, -- Only applicable to sellers
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
