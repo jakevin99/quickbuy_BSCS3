@@ -18,6 +18,9 @@ app.use(
   })
 );
 
+// Middleware to parse JSON bodies from incoming requests
+app.use(express.json());
+
 // Session middleware
 app.use(
   session({
@@ -28,14 +31,11 @@ app.use(
       secure: process.env.NODE_ENV === "production",
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       httpOnly: true,
-      sameSite: 'lax'
+      sameSite: "lax",
     },
-    name: 'session-id' // Optional: customize cookie name
+    name: "session-id", // Optional: customize cookie name
   })
 );
-
-// Middleware to parse JSON bodies from incoming requests
-app.use(express.json());
 
 // Mount user routes under the "/api" path
 app.use("/api", userRoutes);

@@ -1,3 +1,4 @@
+
 <script>
   import { goto } from '$app/navigation';
   
@@ -6,6 +7,7 @@
   let email = "";
   let password = "";
   let confirmPassword = "";
+  let shop_name = ""; // Added New field for sellers?
   let errorMessage = "";
 
   async function submitForm() {
@@ -14,8 +16,12 @@
       return;
     }
 
-    const userData = { username, email, password, role };
+    const userData = { username, email, password, role, shop_name: role === "seller" ? shop_name : null};
 
+    if (role === "seller" && !shop_name.trim()) {
+        errorMessage = "Shoe name is required for sellers";
+        return;
+    }
     try {
       const response = await fetch("http://localhost:3000/api/register", {
         method: "POST",
@@ -33,7 +39,7 @@
         return;
       }
 
-      const data = await response.json();
+      await response.json(); // Ensure JSON parsing
       alert("Registration successful!");
       
       // Clear the input fields
@@ -41,6 +47,7 @@
       email = "";
       password = "";
       confirmPassword = "";
+      shop_name = "";
       errorMessage = "";
       
       // Redirect to logout page
@@ -70,7 +77,7 @@
         class="px-2 py-2 w-1/2 border rounded-r-lg text-xs" 
         class:bg-green-500={role === 'seller'}
         class:text-white={role === 'seller'}
-        on:click={() => role = 'seller'}>
+        on:click={() => {role = 'seller'; shop_name = "";}}>
         Seller
       </button>
     </div>
@@ -79,6 +86,11 @@
     <input type="email" placeholder="Email" bind:value={email} class="w-full mb-2 p-2 border rounded" />
     <input type="password" placeholder="Password" bind:value={password} class="w-full mb-2 p-2 border rounded" />
     <input type="password" placeholder="Confirm Password" bind:value={confirmPassword} class="w-full mb-4 p-2 border rounded" />
+
+    <!-- Shop Name Field (ONLY for sellers) -->
+     {#if role === 'seller'}
+     <input type="text" placeholder="Shop Name" bind:value={shop_name} class="w-full mb-4 p-2 border rounder"/>
+     {/if}
 
     {#if errorMessage}
       <p class="text-red-500 text-sm text-center mb-2">{errorMessage}</p>
@@ -97,3 +109,4 @@
     </p>
   </div>
 </main>
+
