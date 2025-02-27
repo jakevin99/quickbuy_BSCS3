@@ -1,7 +1,5 @@
 <script>
-
-import Register from './register.svelte';
-
+    import Login from "./login/+page.svelte";
 </script>
 
-<Register/>
+<Login />
