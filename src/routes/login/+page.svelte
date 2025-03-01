@@ -1,53 +1,46 @@
 <script>
-  import { goto } from '$app/navigation';
+  import { goto } from "$app/navigation";
+  import { api } from "$lib/services/api.js";
+  import { auth } from "$lib/stores/auth.js";
 
-  let email = "";
-  let password = "";
+  let formData = {
+    email: "",
+    password: "",
+  };
+
   let errorMessage = "";
   let successMessage = "";
 
   async function handleLogin() {
     try {
-      const response = await fetch("http://localhost:3000/api/login", {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "Accept": "application/json"
-        },
-        body: JSON.stringify({ email, password }),
-        credentials: 'include'
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        errorMessage = data.message || "Login failed";
-        successMessage = ""; // Clear success message if error occurs
-        return;
+      const response = await api.post("login", formData);
+      console.log(response);
+      if (response.user) {
+        const { token, user } = response;
+        await auth.login(token, user);
+        successMessage = response.message;
+        console.log(response.user);
+        switch (response.user.role) {
+          case "admin":
+            goto("/admin");
+            break;
+          case "customer":
+            goto("/customer");
+            break;
+          case "seller":
+            goto("/seller");
+            break;
+        }
+      } else {
+        errorMessage = response.message;
       }
-
-      // Clear form and error
-      email = "";
-      password = "";
-      errorMessage = "";
-
-      // Show success message
-      successMessage = "Login successful! Redirecting...";
-      
-      setTimeout(() => {
-        successMessage = "";
-        goto('/admin');
-      }, 1000); // Redirect after 1 seconds
-
     } catch (error) {
       console.error("Login error:", error);
-      errorMessage = "Connection error - please try again";
-      successMessage = ""; // Clear success message on error
     }
   }
 
   function goToRegister() {
-    goto('/register/customer');
+    goto("/register/customer");
   }
 </script>
 
@@ -78,7 +71,7 @@
         required
         type="email" 
         placeholder="your@email.com" 
-        bind:value={email} />
+        bind:value={formData.email} />
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#999999" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mail absolute left-3 top-1/2 transform -translate-y-1/2 mail-icon">
         <rect width="20" height="16" x="2" y="4" rx="2"/>
         <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
@@ -92,7 +85,7 @@
         required
         type="password" 
         placeholder="password" 
-        bind:value={password} />
+        bind:value={formData.password} />
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#999999" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-lock absolute left-3 top-1/2 transform -translate-y-1/2 lock-icon">
         <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
         <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
