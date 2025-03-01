@@ -36,8 +36,8 @@
       
       setTimeout(() => {
         successMessage = "";
-        goto('/logout');
-      }, 2000); // Redirect after 2 seconds
+        goto('/admin');
+      }, 1000); // Redirect after 1 seconds
 
     } catch (error) {
       console.error("Login error:", error);
