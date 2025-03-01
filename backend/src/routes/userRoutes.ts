@@ -7,8 +7,6 @@ import {
 
 const router = express.Router();
 
-// POST /api/register will use the registerUser contrller
-
 router.post("/register", registerUser);
 router.post("/login", loginUser);
 router.post("/logout", logoutUser);

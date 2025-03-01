@@ -1,11 +1,10 @@
-// The purpose of This User Controller, is to Validate the inputs that the user register.
 import { RowDataPacket } from "mysql2/promise";
 import { Request, Response, RequestHandler } from "express";
 import { Session } from "express-session";
 import bcrypt from "bcryptjs";
 import pool from "../models/db";
+import { generateToken } from '../utils/jwt';
 
-// User Interface
 interface User {
   id?: number;
   username: string;
@@ -15,7 +14,6 @@ interface User {
   shop_name: string;
 }
 
-// Extend Request type to include session
 interface RequestWithSession extends Request {
   session: Session & {
     userId?: number;
@@ -24,17 +22,14 @@ interface RequestWithSession extends Request {
   };
 }
 
-// Registration Controller
 export const registerUser: RequestHandler = async (req, res): Promise<void> => {
   const { username, email, password, role, shop_name } = req.body;
 
-  // Check if all fields are provided
   if (!username || !email || !password || !role) {
     res.status(400).json({ message: "All fields are required!" });
     return;
   }
 
-  // Validate role (only allow customer or seller)
   if (role !== "customer" && role !== "seller") {
     res.status(400).json({ message: "Invalid role selected" });
     return;
@@ -45,14 +40,12 @@ export const registerUser: RequestHandler = async (req, res): Promise<void> => {
     return;
   }
 
-  // Basic email validation
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   if (!emailRegex.test(email)) {
     res.status(400).json({ message: "Invalid email format" });
     return;
   }
 
-  // Check for password strength
   if (password.length < 8) {
     res
       .status(400)
@@ -61,12 +54,10 @@ export const registerUser: RequestHandler = async (req, res): Promise<void> => {
   }
 
   try {
-    // Ensure that sellers provide a shop_name
     if (role === "seller" && (!shop_name || shop_name.trim() === "")) {
       res.status(400).json({ message: "Shop name is required for sellers" });
     }
 
-    // Check if email, username, or shop_name (for sellers) already exists
     const [rows] = await pool.query<RowDataPacket[] & User[]>(
       role === "seller"
         ? "SELECT email, username, shop_name FROM users WHERE email = ? OR username = ? OR shop_name = ?"
@@ -92,10 +83,8 @@ export const registerUser: RequestHandler = async (req, res): Promise<void> => {
       }
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Insert user
     const query =
       "INSERT INTO users (username, email, password, role, shop_name) VALUES (?, ?, ?, ?, ?)";
     await pool.query(query, [
@@ -113,8 +102,7 @@ export const registerUser: RequestHandler = async (req, res): Promise<void> => {
   }
 };
 
-// Login Controller
-export const loginUser = async (req: RequestWithSession, res: Response) => {
+export const loginUser = async (req: Request, res: Response): Promise<void> => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -123,7 +111,7 @@ export const loginUser = async (req: RequestWithSession, res: Response) => {
   }
 
   try {
-    const [rows] = await pool.query<RowDataPacket[] & User[]>(
+    const [rows] = await pool.query<any>(
       "SELECT * FROM users WHERE email = ?",
       [email]
     );
@@ -141,26 +129,20 @@ export const loginUser = async (req: RequestWithSession, res: Response) => {
       return;
     }
 
-    // Set session data
-    req.session.userId = user.id;
-    req.session.role = user.role;
+    const token = generateToken({
+      userId: user._id,
+      role: user.role
+    });
 
-    // Save session
-    req.session.save((err) => {
-      if (err) {
-        res.status(500).json({ message: "Error creating session" });
-        return;
-      }
-
-      res.json({
-        message: "Logged in successfully",
-        user: {
-          id: user.id,
-          username: user.username,
-          email: user.email,
-          role: user.role,
-        },
-      });
+    res.json({
+      message: "Logged in successfully",
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+      },
+      token 
     });
   } catch (error) {
     console.error("Login error:", error);
@@ -168,7 +150,6 @@ export const loginUser = async (req: RequestWithSession, res: Response) => {
   }
 };
 
-// Logout Controller
 export const logoutUser = (req: RequestWithSession, res: Response) => {
   try {
     req.session.destroy((error: Error | null) => {

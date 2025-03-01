@@ -1,6 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import userRoutes from "./routes/userRoutes";
+import adminRoutes from "./routes/adminRoutes";
 import cors from "cors";
 import session from "express-session";
 
@@ -9,7 +10,6 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Update CORS to allow requests from frontend
 app.use(
   cors({
     origin: ["http://localhost:5173", "http://127.0.0.1:5173"], // Allow both localhost and IP
@@ -18,10 +18,8 @@ app.use(
   })
 );
 
-// Middleware to parse JSON bodies from incoming requests
 app.use(express.json());
 
-// Session middleware
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "your-secret-key",
@@ -33,12 +31,12 @@ app.use(
       httpOnly: true,
       sameSite: "lax",
     },
-    name: "session-id", // Optional: customize cookie name
+    name: "session-id",
   })
 );
 
-// Mount user routes under the "/api" path
 app.use("/api", userRoutes);
+app.use("/api/admin", adminRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);

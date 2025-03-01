@@ -53,7 +53,7 @@
 
       // Redirect after 2 seconds
       setTimeout(() => {
-        goto("/logout");
+        goto("/login");
       }, 2000);
     } catch (error) {
       errorMessage = "Connection error - please try again";
