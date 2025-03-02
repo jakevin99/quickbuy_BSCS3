@@ -28,7 +28,7 @@
 </script>
 
 <main class="px-10 py-6">
-    <header class="flex justify-between items-center w-full">
+    <header class="flex justify-between items-center w-full mb-8">
         <h1 class="text-[#21463E] font-extrabold text-3xl">
             Quick<span class="text-[#999999]">Buy</span>
         </h1>
@@ -37,7 +37,8 @@
             Log Out
         </button>
     </header>
-    <div>
-        <p>welcome to admin page.</p>
-    </div>
+
+    <slot>
+        <!-- content goes here -->
+    </slot>
 </main>

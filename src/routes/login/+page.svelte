@@ -22,7 +22,7 @@
         console.log(response.user);
         switch (response.user.role) {
           case "admin":
-            goto("/admin");
+            goto("/admin/account-management/customer");
             break;
           case "customer":
             goto("/customer");
