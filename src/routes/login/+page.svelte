@@ -58,7 +58,14 @@
   {/if}
   <!-- logo -->
   <div class="flex flex-col items-center space-y-4 mb-8 mt-12">
-    <h1 class="text-[#21463E] font-extrabold text-5xl">Quick<span class="text-[#999999]">Buy</span></h1>
+    <h1 class="text-[#21463E] font-extrabold text-4xl flex items-center">
+      <svg class="hamburger-icon mr-1" width="60" height="27" viewBox="-21 0 47 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <line x1="9" y1="1" x2="31" y2="1" stroke="#21463E" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="-1" y1="8" x2="22" y2="8" stroke="#21463E" stroke-width="1.6" stroke-linecap="round"/>
+        <line x1="8" y1="15" x2="30" y2="15" stroke="#21463E" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+      Quick<span class="text-[#ADADAD]">Buy</span>
+    </h1>
     <p class="text-[#686868] text-sm">Please, log in to access your account.</p>
   </div>
 
@@ -123,5 +130,13 @@
   input:not(:placeholder-shown) + .mail-icon,
   input:not(:placeholder-shown) + .lock-icon {
     stroke: #21463E;
+  }
+  
+  .hamburger-icon {
+    position: relative;
+    font-size: 0.9em;
+    display: inline-block;
+    transform: scaleX(0.8);
+    margin-right: -0.1em;
   }
 </style>
