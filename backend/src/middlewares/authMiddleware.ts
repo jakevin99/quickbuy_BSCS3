@@ -38,3 +38,20 @@ export const isAdmin = (
   }
   next();
 };
+
+/**
+ * Middleware factory for checking if a user has a specific role
+ * @param role The role to check for
+ * @returns Middleware function that validates the user's role
+ */
+export const hasRole = (role: string) => {
+  return (req: AuthRequest, res: Response, next: NextFunction): void => {
+    if (!req.user || req.user.role !== role) {
+      res.status(403).json({ 
+        message: `Access denied. ${role.charAt(0).toUpperCase() + role.slice(1)} only.` 
+      });
+      return;
+    }
+    next();
+  };
+};

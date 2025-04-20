@@ -1,9 +1,8 @@
-import { RowDataPacket } from "mysql2/promise";
-import { Request, Response, RequestHandler } from "express";
+import { Request, Response, NextFunction } from "express";
 import { Session } from "express-session";
-import bcrypt from "bcryptjs";
-import pool from "../models/db";
-import { generateToken } from '../utils/jwt';
+import * as userService from '../services/userService';
+import { ApiError } from '../middlewares/errorMiddleware';
+import { sendSuccess } from '../utils/responseHandler';
 
 interface User {
   id?: number;
@@ -22,148 +21,99 @@ interface RequestWithSession extends Request {
   };
 }
 
-export const registerUser: RequestHandler = async (req, res): Promise<void> => {
+interface AuthRequest extends Request {
+  user?: { userId: number; role: string };
+}
+
+// @desc    Register a new user
+// @route   POST /api/auth/register
+// @access  Public
+export const registerUser = async (req: Request, res: Response): Promise<void> => {
   const { username, email, password, role, shop_name } = req.body;
 
-  if (!username || !email || !password || !role) {
-    res.status(400).json({ message: "All fields are required!" });
-    return;
+  // Check if user already exists
+  const existingUsers = await userService.checkExistingUser(email, username, role === "seller" ? shop_name : undefined);
+  
+  if (existingUsers.email) {
+    throw new ApiError(400, "Email already exists");
+  }
+  
+  if (existingUsers.username) {
+    throw new ApiError(400, "Username already exists");
+  }
+  
+  if (role === "seller" && existingUsers.shop_name) {
+    throw new ApiError(400, "Shop name already exists");
   }
 
-  if (role !== "customer" && role !== "seller") {
-    res.status(400).json({ message: "Invalid role selected" });
-    return;
-  }
+  // Create user
+  await userService.createUser({
+    username,
+    email,
+    password,
+    role,
+    shop_name
+  });
 
-  if (role === "seller" && !shop_name) {
-    res.status(400).json({ message: "Shop name is required for sellers" });
-    return;
-  }
-
-  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-  if (!emailRegex.test(email)) {
-    res.status(400).json({ message: "Invalid email format" });
-    return;
-  }
-
-  if (password.length < 8) {
-    res
-      .status(400)
-      .json({ message: "Password must be at least 8 characters long" });
-    return;
-  }
-
-  try {
-    if (role === "seller" && (!shop_name || shop_name.trim() === "")) {
-      res.status(400).json({ message: "Shop name is required for sellers" });
-    }
-
-    const [rows] = await pool.query<RowDataPacket[] & User[]>(
-      role === "seller"
-        ? "SELECT email, username, shop_name FROM users WHERE email = ? OR username = ? OR shop_name = ?"
-        : "SELECT email, username FROM users WHERE email = ? OR username = ?",
-      role === "seller" ? [email, username, shop_name] : [email, username]
-    );
-
-    if (rows.length > 0) {
-      if (rows.some((user) => user.email === email)) {
-        res.status(400).json({ message: "Email already exists" });
-        return;
-      }
-      if (rows.some((user) => user.username === username)) {
-        res.status(400).json({ message: "Username already exists" });
-        return;
-      }
-      if (
-        role === "seller" &&
-        rows.some((user) => user.shop_name === shop_name)
-      ) {
-        res.status(400).json({ message: "Shop name already exists" });
-        return;
-      }
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const query =
-      "INSERT INTO users (username, email, password, role, shop_name) VALUES (?, ?, ?, ?, ?)";
-    await pool.query(query, [
-      username,
-      email,
-      hashedPassword,
-      role,
-      role === "seller" ? shop_name : null,
-    ]);
-
-    res.status(201).json({ message: "User registered successfully" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
-  }
+  sendSuccess(res, null, "User registered successfully", 201);
 };
 
+// @desc    Login user and get token
+// @route   POST /api/auth/login
+// @access  Public
 export const loginUser = async (req: Request, res: Response): Promise<void> => {
   const { email, password } = req.body;
 
-  if (!email || !password) {
-    res.status(400).json({ message: "Email and password are required" });
-    return;
+  const user = await userService.findUserByEmail(email);
+
+  if (!user) {
+    throw new ApiError(401, "Invalid email or password");
   }
 
-  try {
-    const [rows] = await pool.query<any>(
-      "SELECT * FROM users WHERE email = ?",
-      [email]
-    );
-
-    if (rows.length === 0) {
-      res.status(401).json({ message: "Invalid email or password" });
-      return;
-    }
-
-    const user = rows[0];
-
-    const isValidPassword = await bcrypt.compare(password, user.password);
-    if (!isValidPassword) {
-      res.status(401).json({ message: "Invalid email or password" });
-      return;
-    }
-
-    const token = generateToken({
-      userId: user._id,
-      role: user.role
-    });
-
-    res.json({
-      message: "Logged in successfully",
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        role: user.role,
-      },
-      token 
-    });
-  } catch (error) {
-    console.error("Login error:", error);
-    res.status(500).json({ message: "Server error during login" });
+  const isValidPassword = await userService.validatePassword(password, user.password);
+  if (!isValidPassword) {
+    throw new ApiError(401, "Invalid email or password");
   }
+
+  const token = userService.generateAuthToken(user.id, user.role);
+
+  const userData = {
+    id: user.id,
+    username: user.username,
+    email: user.email,
+    role: user.role
+  };
+
+  sendSuccess(res, { user: userData, token }, "Logged in successfully");
 };
 
-export const logoutUser = (req: RequestWithSession, res: Response) => {
-  try {
-    req.session.destroy((error: Error | null) => {
-      if (error) {
-        res
-          .status(500)
-          .json({ message: "Could not log out, please try again" });
-        return;
-      }
-      res.clearCookie("connect.sid");
-      res.json({ message: "Logged out successfully" });
-    });
-  } catch (error) {
-    console.error("Logout error:", error);
-    res.status(500).json({ message: "Server error during logout" });
+// @desc    Logout user
+// @route   POST /api/auth/logout
+// @access  Private
+export const logoutUser = (req: RequestWithSession, res: Response, next: NextFunction): void => {
+  req.session.destroy((error: Error | null) => {
+    if (error) {
+      next(new ApiError(500, "Could not log out, please try again"));
+      return;
+    }
+    res.clearCookie("connect.sid");
+    sendSuccess(res, null, "Logged out successfully");
+  });
+};
+
+// @desc    Get user profile
+// @route   GET /api/users/profile
+// @access  Private
+export const getUserProfile = async (req: AuthRequest, res: Response): Promise<void> => {
+  if (!req.user) {
+    throw new ApiError(401, "Not authenticated");
   }
+
+  const userProfile = await userService.getUserProfile(req.user.userId);
+  
+  if (!userProfile) {
+    throw new ApiError(404, "User not found");
+  }
+  
+  sendSuccess(res, userProfile, "User profile retrieved successfully");
 };

@@ -1,14 +1,15 @@
 import express from "express";
 import { getAllUsers, deleteUser } from "../controllers/adminController";
 import { authenticateToken, isAdmin } from "../middlewares/authMiddleware";
+import { asyncHandler } from "../utils/asyncHandler";
 
 const router = express.Router();
 
-    router.get("/users", getAllUsers);
-    router.delete("/deleteuser/:id", deleteUser);
+// Apply middleware to all admin routes
+router.use(authenticateToken, isAdmin);
 
-// middleware protected admin routes.
-// router.get("/users", authenticateToken, isAdmin, getAllUsers);
-// router.delete("/deleteuser/:id", authenticateToken, isAdmin, deleteUser);
+// Users management
+router.get("/users", asyncHandler(getAllUsers));
+router.delete("/users/:id", asyncHandler(deleteUser));
 
 export default router;

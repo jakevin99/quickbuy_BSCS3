@@ -1,40 +1,41 @@
 import { writable } from 'svelte/store';
 import { api } from '$lib/services/api.js';
+import type { User } from '$lib/types/index.js';
 
+// Create a type-safe users store
 function createUsersStore() {
-    const { subscribe, set, update } = writable<any[]>([]);
+    const { subscribe, set, update } = writable<User[]>([]);
 
     return {
         subscribe,
         
+        // Load all users from the API
         loadUsers: async () => {
             try {
-                let endpoint = "admin/users";
-
-                // api request.
-                const response = await api.get(endpoint);
-
-                console.log(response);
-
+                const response = await api.admin.getUsers() as User[];
                 set(response);
-            } catch (err: any) {
-                console.error('Error loading users:', err);
-                throw err;
+                return response;
+            } catch (error) {
+                console.error('Error loading users:', error);
+                throw error;
             }
         },
 
+        // Delete a user and update the store
         deleteUser: async (userId: string) => {
             try {
-                // api request.
-                await api.delete(`admin/deleteuser/${userId}`);
-
-                // reload store after magdelete.
+                // Call API to delete the user
+                await api.admin.deleteUser(userId);
+                
+                // Update local store to reflect the deletion
                 update(users => users.filter(user => user.id !== userId));
-            } catch (err: any) {
-                console.error('Error deleting user:', err);
-                throw err;
+            } catch (error) {
+                console.error('Error deleting user:', error);
+                throw error;
             }
         },
+        
+        // Reset the store to empty
         reset: () => set([])
     };
 }

@@ -1,29 +1,17 @@
 <script>
     import { goto } from '$app/navigation';
+    import { auth } from '$lib/stores/auth.js';
   
-    let showModal = true;
+    // Get authenticated user from the store
+    $: user = $auth.user;
     
     async function handleLogout() {
       try {
-        const response = await fetch('http://localhost:3000/api/logout', {
-          method: 'POST',
-          credentials: 'include',
-        });
-  
-        if (response.ok) {
-          showModal = false;
-          goto('/login');
-        } else {
-          console.error('Logout failed');
-        }
+        await auth.logout();
+        goto('/login');
       } catch (error) {
         console.error('Error during logout:', error);
       }
-    }
-    
-    function handleCancel() {
-      showModal = false;
-      goto('/');
     }
 </script>
 
@@ -37,7 +25,12 @@
             Log Out
         </button>
     </header>
-    <div>
-        <p>welcome to customer page.</p>
+    <div class="mt-8">
+        {#if user}
+            <h2 class="text-2xl font-bold mb-4">Welcome, {user.name || user.email}!</h2>
+            <p class="text-gray-600">You are logged in as a customer.</p>
+        {:else}
+            <p class="text-gray-600">Loading user data...</p>
+        {/if}
     </div>
 </main>

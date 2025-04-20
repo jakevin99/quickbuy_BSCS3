@@ -3,12 +3,20 @@ import {
   registerUser,
   loginUser,
   logoutUser,
+  getUserProfile
 } from "../controllers/userController";
+import { authenticateToken } from "../middlewares/authMiddleware";
+import { validateRegistration, validateLogin } from "../utils/validation";
+import { asyncHandler } from "../utils/asyncHandler";
 
 const router = express.Router();
 
-router.post("/register", registerUser);
-router.post("/login", loginUser);
-router.post("/logout", logoutUser);
+// Auth routes
+router.post("/register", validateRegistration, asyncHandler(registerUser));
+router.post("/login", validateLogin, asyncHandler(loginUser));
+router.post("/logout", authenticateToken, logoutUser);
+
+// User profile routes
+router.get("/profile", authenticateToken, asyncHandler(getUserProfile));
 
 export default router;
