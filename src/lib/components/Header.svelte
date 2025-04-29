@@ -18,14 +18,14 @@
   ];
 </script>
 
-<header class="bg-white py-4 px-6 md:px-12 flex justify-between items-center border-b" style="border-color: #21463e;">
+<header class="bg-white py-4 px-6 md:px-12 flex justify-between items-center border-b border-[#21463e]">
   <!-- Logo -->
   <a href="/" class="flex items-center">
     <div class="text-xl font-bold flex items-center">
-      <div class="mr-4 relative" style="width: 56px; height: 24px;">
-        <span class="absolute bg-[#21463e]" style="width: 15px; height: 2px; top: 6px; left: 56px; border-radius: 1px;"></span>
-        <span class="absolute bg-[#21463e]" style="width: 16px; height: 2px; top: 9.3px; left: 52px; border-radius: 1px;"></span>
-        <span class="absolute bg-[#21463e]" style="width: 15px; height: 2px; top: 12.7px; left: 55px; border-radius: 1px;"></span>
+      <div class="mr-4 relative w-[56px] h-[24px]">
+        <span class="absolute bg-[#21463e] w-[15px] h-[2px] top-[6px] left-[56px] rounded-[1px]"></span>
+        <span class="absolute bg-[#21463e] w-[18px] h-[2px] top-[9.7px] left-[51px] rounded-[1px]"></span>
+        <span class="absolute bg-[#21463e] w-[15px] h-[2px] top-[13.7px] left-[55px] rounded-[1px]"></span>
       </div>
       <span class="text-[#21463e]">Quick</span><span class="text-gray-400">Buy</span>
     </div>

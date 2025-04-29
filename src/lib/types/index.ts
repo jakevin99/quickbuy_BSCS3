@@ -36,6 +36,13 @@ export interface AuthState {
   user: User | null;
 }
 
+// Category interface
+export interface Category {
+  id: number;
+  name: string;
+  image: string;
+}
+
 // Product interfaces
 export interface Product {
   id: number | string;

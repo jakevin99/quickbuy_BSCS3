@@ -199,7 +199,6 @@
     </p>
   </div>
 </main>
-
 <style>
   .store:focus-within .store-icon,
   .user:focus-within .user-icon,
@@ -220,3 +219,4 @@
     font-size: 0.9em;
   }
 </style>
+

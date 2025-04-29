@@ -175,7 +175,6 @@
     </p>
   </div>
 </main>
-
 <style>
   .mail:focus-within .mail-icon {
     stroke: #21463e;
@@ -200,3 +199,4 @@
     font-size: 0.9em;
   }
 </style>
+

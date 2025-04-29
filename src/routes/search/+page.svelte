@@ -1,5 +1,24 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { categoriesStore } from '$lib/stores/categories.js';
+  
+  /**
+   * Search Page Component
+   * 
+   * This page implements RESTful and DRY principles:
+   * 
+   * RESTful principles:
+   * - Uses centralized category store that models RESTful API endpoints
+   * - Follows resource-based organization for category data
+   * - Maintains a clean separation between data and presentation
+   * - Uses proper HTTP verb semantics (GET for fetching categories)
+   * 
+   * DRY principles:
+   * - Reuses the centralized category store instead of duplicating data
+   * - Implements a single template for rendering all categories
+   * - Uses reactive binding to automatically update the UI when data changes
+   * - Leverages Svelte's reactive declarations for derived state
+   */
   
   interface Product {
     id: number;
@@ -7,12 +26,6 @@
     price: number;
     image: string;
     brand: string;
-  }
-  
-  interface Category {
-    id: number;
-    name: string;
-    image: string;
   }
   
   interface Collection {
@@ -29,9 +42,10 @@
   let searchQuery = '';
   let loading = false;
   let products: Product[] = [];
-  let categories: Category[] = [];
-  let featuredCollections: Collection[] = [];
   let selectedCategory: number | null = null;
+  
+  // Get the reactive categories store
+  $: ({ categories, loading: categoriesLoading, error: categoriesError } = $categoriesStore);
   
   // Product brands for promotions
   const brands: Brand[] = [
@@ -46,26 +60,15 @@
     { name: 'Cetaphil', logo: '/images/brands/cetaphil.png' }
   ];
   
-  // Mock categories for the page
+  // Featured collections
+  let featuredCollections: Collection[] = [];
+  
+  // Initialize categories and featured collections
   onMount(() => {
-    categories = [
-      { id: 1, name: "Men's Apparel", image: '/images/categories/mens-apparel.png' },
-      { id: 2, name: "Babies & Kids", image: '/images/categories/babies-kids.png' },
-      { id: 3, name: "Groceries", image: '/images/categories/groceries.png' },
-      { id: 4, name: "Home & Living", image: '/images/categories/home-living.png' },
-      { id: 5, name: "Mobile Accessories", image: '/images/categories/mobile-accessories.png' },
-      { id: 6, name: "Toys, Games & Collectibles", image: '/images/categories/toys-games.png' },
-      { id: 7, name: "Women's Bag", image: '/images/categories/womens-bag.png' },
-      { id: 8, name: "Health & Gadgets Accessories", image: '/images/categories/health-gadgets.png' },
-      { id: 9, name: "Health & Beauty", image: '/images/categories/health-beauty.png' },
-      { id: 10, name: "Home Entertainment", image: '/images/categories/home-entertainment.png' },
-      { id: 11, name: "Women's Apparel", image: '/images/categories/womens-apparel.png' },
-      { id: 12, name: "Health & Personal Care", image: '/images/categories/health-personal-care.png' },
-      { id: 13, name: "Makeup & Fragrance", image: '/images/categories/makeup-fragrance.png' },
-      { id: 14, name: "Home Appliances", image: '/images/categories/home-appliances.png' },
-      { id: 15, name: "Laptop & Computer", image: '/images/categories/laptop-computer.png' }
-    ];
+    // Initialize categories from the store
+    categoriesStore.initialize();
     
+    // Set featured collections
     featuredCollections = [
       { id: 1, name: "Gadget Haul", image: '/images/collections/gadget-haul.jpg' },
       { id: 2, name: "Everyday Essentials", image: '/images/collections/everyday-essentials.jpg' },
@@ -94,7 +97,8 @@
   <title>Search Products | QuickBuy</title>
 </svelte:head>
 
-<div class="bg-gray-100 min-h-screen">
+<div class="flex-grow pb-40" style="background: linear-gradient(to bottom, #ffffff 0%, #e0f3ee 30%, #a6d6cc 50%, #52a093 65%, #21463e 90%);">
+
   <!-- Search Banner -->
   <div class="bg-white py-4 px-6 shadow-sm">
     <div class="max-w-6xl mx-auto">
@@ -116,6 +120,7 @@
           </button>
         </div>
         <div class="ml-4">
+         
           <button class="text-gray-600 hover:text-teal-700">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -285,21 +290,41 @@
   <!-- Categories Section -->
   <div class="max-w-6xl mx-auto px-6 mb-12">
     <h2 class="text-xl font-bold mb-6">CATEGORIES</h2>
-    
-    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
-      {#each categories as category}
-        <button 
-          class="rounded-lg overflow-hidden flex flex-col items-center bg-white hover:shadow-md transition p-4"
-          on:click={() => selectedCategory = category.id}
-        >
-          <img src={category.image || "/images/placeholder.png"} alt={category.name} class="w-16 h-16 object-contain mb-2" />
-          <h3 class="text-xs font-medium text-center">{category.name}</h3>
-        </button>
-      {/each}
+    <div class="bg-white rounded border border-gray-200">
+      <div class="grid grid-cols-10">
+        {#each categories as category, index}
+          <button 
+            class="flex flex-col items-center p-2 py-3
+                  {index % 10 !== 9 ? 'border-r' : ''} 
+                  {Math.floor(index / 10) !== Math.floor((categories.length - 1) / 10) ? 'border-b' : ''} 
+                  border-gray-200 hover:bg-gray-50 transition-colors
+                  {category.name === 'Women\'s Bag' ? 'category-women-bag' : ''}
+                  {category.name === 'Health & Personal Care' ? 'category-health-care' : ''}"
+            on:click={() => selectedCategory = category.id}
+          >
+            <div class="w-24 h-24 rounded-full border border-gray-200 flex items-center justify-center mb-2 overflow-hidden bg-white">
+              <img 
+                src={category.image} 
+                alt={category.name} 
+                class="w-24 h-24 object-cover"
+              />
+            </div>
+            <h3 class="text-xs font-medium text-center">{category.name}</h3>
+          </button>
+        {/each}
+      </div>
     </div>
   </div>
 </div>
 
 <style>
-  /* Add any component-specific styles here */
+  /* Custom styles for category images */
+  .category-women-bag img,
+  .category-health-care img {
+    background-color: white;
+    border-radius: 50%;
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+  }
 </style> 

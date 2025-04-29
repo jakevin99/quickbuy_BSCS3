@@ -106,7 +106,8 @@
   <title>Shop | QuickBuy</title>
 </svelte:head>
 
-<div class="bg-gray-100 min-h-screen py-8 px-4 sm:px-6 lg:px-8">
+<div class="flex-grow pb-40" style="background: linear-gradient(to top, #ffffff 0%, #e0f3ee 30%, #a6d6cc 50%, #52a093 65%, #21463e 90%);">
+
   <div class="max-w-7xl mx-auto">
     <div class="text-center mb-12">
       <h1 class="text-3xl font-bold text-gray-900">Shop Our Products</h1>
@@ -237,3 +238,16 @@
     {/if}
   </div>
 </div> 
+
+<!--Sidebar-->
+<a href="/" class="flex items-center">
+  <div class="text-xl font-bold flex items-center">
+    <div class="mr-4 relative w-[56px] h-[24px]">
+      <span class="absolute bg-[#21463e] w-[15px] h-[2px] top-[6px] left-[55px] rounded-[1px]"></span>
+      <span class="absolute bg-[#21463e] w-[15px] h-[2px] top-[9.7px] left-[55px] rounded-[1px]"></span>
+      <span class="absolute bg-[#21463e] w-[15px] h-[2px] top-[13.7px] left-[55px] rounded-[1px]"></span>
+    </div>
+    <span class="text-white">All Categories</span>
+  </div>
+</a>
+

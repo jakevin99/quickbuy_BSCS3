@@ -1,0 +1,11 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+# Your rule content
+
+-Always follow RESTful and DRY principle
+-Always use Tailwind 
+-Always document your code using comments

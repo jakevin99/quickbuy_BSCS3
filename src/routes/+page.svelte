@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+
   import { goto } from '$app/navigation';
 
   interface FeaturedProduct {
@@ -62,7 +62,7 @@
             <!-- Nike Badge and Image Container - Left Side -->
             <div class="w-[230px] pt-8 pr-2 relative">
               <!-- Nike Air Force 1 Badge - Thinner to match reference -->
-              <div class="absolute top-18 right-12 z-30 text-white px-9 py-3 rounded-full flex items-center justify-between" style="width: 210px; background-color: rgb(25, 24, 21);">
+              <a href="/shop" class="absolute top-18 right-12 z-30 text-white px-9 py-3 rounded-full flex items-center justify-between cursor-pointer hover:opacity-90 transition-opacity" style="width: 210px; background-color: rgb(25, 24, 21);">
                 <div class="flex items-center">
                   <span class="text-xs font-medium">Nike Air Force 1</span>
                 </div>
@@ -71,7 +71,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
                   </svg>
                 </div>
-              </div>
+              </a>
               
               <!-- Nike Shoe Box  -->
               <div class="bg-white rounded-lg shadow-md mt-8 w-full h-[270px]">
@@ -117,7 +117,6 @@
     </div>
   </div>
 </div>
-
 <style>
   /* Add any component-specific styles here */
   h1 {

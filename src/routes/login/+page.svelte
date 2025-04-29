@@ -116,9 +116,7 @@
       </span>
     </p>
   </div>
-</main>
-
-<style>
+</main><style>
   .mail:focus-within .mail-icon {
     stroke: #21463E;
   }
@@ -140,3 +138,4 @@
     margin-right: -0.1em;
   }
 </style>
+
